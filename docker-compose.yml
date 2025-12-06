@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  retroed-1:
+    build: .
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - ALLOWED_ORIGINS=http://localhost:3001,http://localhost:3002,http://localhost:3003
+    networks:
+      - retroed-network
+
+  retroed-2:
+    build: .
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - ALLOWED_ORIGINS=http://localhost:3001,http://localhost:3002,http://localhost:3003
+    networks:
+      - retroed-network
+
+  retroed-3:
+    build: .
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - ALLOWED_ORIGINS=http://localhost:3001,http://localhost:3002,http://localhost:3003
+    networks:
+      - retroed-network
+
+networks:
+  retroed-network:
+    driver: bridge
