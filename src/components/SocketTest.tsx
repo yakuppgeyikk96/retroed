@@ -1,6 +1,7 @@
 "use client";
 
-import { disconnectSocket, getSocket } from "@/lib/socket";
+import { CLIENT_EVENTS, SERVER_EVENTS, SOCKET_EVENTS } from "@/lib/events";
+import { getSocket } from "@/lib/socket";
 import { useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
 
@@ -23,42 +24,66 @@ export default function SocketTest() {
     const socketInstance = getSocket();
     socketRef.current = socketInstance;
 
-    socketInstance.on("connect", () => {
+    // Event handler fonksiyonları
+    const handleConnect = () => {
       setIsConnected(true);
       setSocketId(socketInstance.id || null);
       addMessage(`✅ Bağlandı! Socket ID: ${socketInstance.id}`);
-    });
+    };
 
-    socketInstance.on("disconnect", () => {
+    const handleDisconnect = () => {
       setIsConnected(false);
       setSocketId(null);
       addMessage("❌ Bağlantı kesildi");
-    });
+    };
 
-    socketInstance.on("connect_error", (error) => {
+    const handleConnectError = (error: Error) => {
       addMessage(`❌ Bağlantı hatası: ${error.message}`);
-    });
+    };
 
-    socketInstance.on("user-joined", (data) => {
+    const handleUserJoined = (data: { socketId: string }) => {
       addMessage(`👤 Kullanıcı katıldı: ${data.socketId}`);
-    });
+    };
 
-    socketInstance.on("user-left", (data) => {
+    const handleUserLeft = (data: { socketId: string }) => {
       addMessage(`👋 Kullanıcı ayrıldı: ${data.socketId}`);
-    });
+    };
 
-    socketInstance.on("card-added", (data) => {
+    const handleCardAdded = (data: { content: string; column: string }) => {
       addMessage(`📝 Kart eklendi: ${data.content} (${data.column})`);
-    });
+    };
 
+    // Event listener'ları ekle
+    socketInstance.on(SOCKET_EVENTS.CONNECT, handleConnect);
+    socketInstance.on(SOCKET_EVENTS.DISCONNECT, handleDisconnect);
+    socketInstance.on(SOCKET_EVENTS.CONNECT_ERROR, handleConnectError);
+    socketInstance.on(SERVER_EVENTS.USER_JOINED, handleUserJoined);
+    socketInstance.on(SERVER_EVENTS.USER_LEFT, handleUserLeft);
+    socketInstance.on(SERVER_EVENTS.CARD_ADDED, handleCardAdded);
+
+    // Eğer zaten bağlıysa, handler'ı çağır (state güncellemesi callback içinde olur)
+    if (socketInstance.connected) {
+      queueMicrotask(() => {
+        handleConnect();
+      });
+    }
+
+    // Cleanup: Sadece bu component'in listener'larını kaldır
     return () => {
-      disconnectSocket();
+      socketInstance.off(SOCKET_EVENTS.CONNECT, handleConnect);
+      socketInstance.off(SOCKET_EVENTS.DISCONNECT, handleDisconnect);
+      socketInstance.off(SOCKET_EVENTS.CONNECT_ERROR, handleConnectError);
+      socketInstance.off(SERVER_EVENTS.USER_JOINED, handleUserJoined);
+      socketInstance.off(SERVER_EVENTS.USER_LEFT, handleUserLeft);
+      socketInstance.off(SERVER_EVENTS.CARD_ADDED, handleCardAdded);
     };
   }, []);
 
   const handleJoinRoom = () => {
     if (socketRef.current && roomId.trim()) {
-      socketRef.current.emit("join-room", roomId.trim());
+      socketRef.current.emit(CLIENT_EVENTS.JOIN_ROOM, {
+        roomId: roomId.trim(),
+      });
       setJoinedRoom(roomId.trim());
       addMessage(`🚪 Odaya katıldınız: ${roomId.trim()}`);
     }
@@ -66,7 +91,7 @@ export default function SocketTest() {
 
   const handleLeaveRoom = () => {
     if (socketRef.current && joinedRoom) {
-      socketRef.current.emit("leave-room", joinedRoom);
+      socketRef.current.emit(CLIENT_EVENTS.LEAVE_ROOM, { roomId: joinedRoom });
       addMessage(`🚪 Odadan ayrıldınız: ${joinedRoom}`);
       setJoinedRoom(null);
     }
@@ -74,11 +99,10 @@ export default function SocketTest() {
 
   const handleTestCard = () => {
     if (socketRef.current && joinedRoom) {
-      socketRef.current.emit("add-card", {
+      socketRef.current.emit(CLIENT_EVENTS.ADD_CARD, {
         roomId: joinedRoom,
         column: "good",
         content: "Test kartı",
-        author: "Test Kullanıcı",
       });
       addMessage("📤 Test kartı gönderildi");
     }
@@ -91,7 +115,6 @@ export default function SocketTest() {
           Socket.io Bağlantı Testi
         </h2>
 
-        {/* Connection Status */}
         <div className="mb-4 p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800">
           <div className="flex items-center gap-2 mb-2">
             <div

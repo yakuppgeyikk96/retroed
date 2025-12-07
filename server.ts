@@ -2,6 +2,7 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { parse } from "url";
+import { registerHandlers } from "./server/handlers";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
@@ -36,72 +37,7 @@ app.prepare().then(() => {
   io.on("connection", (socket) => {
     console.log(`Client connected: ${socket.id}`);
 
-    socket.on("join-room", (roomId: string) => {
-      socket.join(roomId);
-      console.log(`Socket ${socket.id} joined room: ${roomId}`);
-
-      socket.to(roomId).emit("user-joined", {
-        socketId: socket.id,
-        timestamp: new Date().toISOString(),
-      });
-    });
-
-    /**
-     * Add a new card to the room
-     */
-    socket.on(
-      "add-card",
-      (data: {
-        roomId: string;
-        column: string;
-        content: string;
-        author: string;
-      }) => {
-        const cardData = {
-          id: `card-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          content: data.content,
-          author: data.author,
-          column: data.column,
-          createdAt: new Date().toISOString(),
-        };
-
-        io.to(data.roomId).emit("card-added", cardData);
-        console.log(`Card added to room ${data.roomId}:`, cardData);
-      }
-    );
-
-    /**
-     * Update a card in the room
-     */
-    socket.on(
-      "update-card",
-      (data: { roomId: string; cardId: string; content: string }) => {
-        io.to(data.roomId).emit("card-updated", {
-          cardId: data.cardId,
-          content: data.content,
-          updatedAt: new Date().toISOString(),
-        });
-        console.log(`Card updated in room ${data.roomId}:`, data.cardId);
-      }
-    );
-
-    /**
-     * Delete a card from the room
-     */
-    socket.on("delete-card", (data: { roomId: string; cardId: string }) => {
-      io.to(data.roomId).emit("card-deleted", {
-        cardId: data.cardId,
-        deletedAt: new Date().toISOString(),
-      });
-      console.log(`Card deleted in room ${data.roomId}:`, data.cardId);
-    });
-
-    /**
-     * When the connection is disconnected
-     */
-    socket.on("disconnect", () => {
-      console.log(`Client disconnected: ${socket.id}`);
-    });
+    registerHandlers(socket, io);
   });
 
   httpServer

@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  retroed-dev-1:
+  retroed-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"  # 3001:3000 yerine 3000:3000
+      - "3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
@@ -15,48 +15,8 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - HOSTNAME=0.0.0.0
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
+      - ALLOWED_ORIGINS=http://localhost:3000
       - NEXT_PUBLIC_SOCKET_URL=http://localhost:3000
-    networks:
-      - retroed-network
-    command: pnpm run dev:server
-
-  retroed-dev-2:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3001:3000"  # 3002:3000 yerine 3001:3000
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
-      - NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
-    networks:
-      - retroed-network
-    command: pnpm run dev:server
-
-  retroed-dev-3:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3002:3000"  # 3003:3000 yerine 3002:3000
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
-      - NEXT_PUBLIC_SOCKET_URL=http://localhost:3002
     networks:
       - retroed-network
     command: pnpm run dev:server

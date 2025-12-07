@@ -1,4 +1,5 @@
 import { io, Socket } from "socket.io-client";
+import { SOCKET_EVENTS } from "./events";
 
 let socket: Socket | null = null;
 
@@ -14,15 +15,15 @@ export const getSocket = (): Socket => {
       reconnectionAttempts: 5,
     });
 
-    socket.on("connect", () => {
+    socket.on(SOCKET_EVENTS.CONNECT, () => {
       console.log("Connected to server:", socket?.id);
     });
 
-    socket.on("disconnect", () => {
+    socket.on(SOCKET_EVENTS.DISCONNECT, () => {
       console.log("Disconnected from server");
     });
 
-    socket.on("connect_error", (error) => {
+    socket.on(SOCKET_EVENTS.CONNECT_ERROR, (error) => {
       console.error("Connection error:", error);
     });
   }
