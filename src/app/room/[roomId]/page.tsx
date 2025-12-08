@@ -1,5 +1,6 @@
 import RetrospectiveBoard from "@/components/RetrospectiveBoard";
 import RoomHeader from "@/components/RoomHeader";
+import { RoomSocketProvider } from "@/components/RoomSocketProvider";
 import type { Metadata } from "next";
 
 type Props = {
@@ -18,11 +19,13 @@ export default async function RoomPage({ params }: Props) {
   const { roomId } = await params;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 p-8">
-      <div className="max-w-7xl mx-auto">
-        <RoomHeader roomId={roomId} />
-        <RetrospectiveBoard roomId={roomId} />
+    <RoomSocketProvider roomId={roomId}>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 p-8">
+        <div className="max-w-7xl mx-auto">
+          <RoomHeader roomId={roomId} />
+          <RetrospectiveBoard roomId={roomId} />
+        </div>
       </div>
-    </div>
+    </RoomSocketProvider>
   );
 }
