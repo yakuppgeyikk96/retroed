@@ -18,6 +18,9 @@ export const registerHandlers = (socket: Socket, io: SocketIOServer): void => {
   socket.on(CLIENT_EVENTS.LEAVE_ROOM, (data) =>
     roomHandlers.handleLeaveRoom(data, socketData)
   );
+  socket.on(CLIENT_EVENTS.CLOSE_ROOM, (data) =>
+    roomHandlers.handleCloseRoom(data, socketData)
+  );
 
   // Card handlers
   socket.on(CLIENT_EVENTS.ADD_CARD, (data) =>

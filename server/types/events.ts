@@ -13,6 +13,10 @@ export interface LeaveRoomData {
   roomId: string;
 }
 
+export interface CloseRoomData {
+  roomId: string;
+}
+
 export interface AddCardData {
   roomId: string;
   column: string;

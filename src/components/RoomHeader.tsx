@@ -1,8 +1,9 @@
 "use client";
 
+import { CLIENT_EVENTS } from "@/lib/events";
+import { getSocket } from "@/lib/socket";
 import { useRoomStore } from "@/store/useRoomStore";
 import { Share2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface RoomHeaderProps {
@@ -10,7 +11,6 @@ interface RoomHeaderProps {
 }
 
 export default function RoomHeader({ roomId }: RoomHeaderProps) {
-  const router = useRouter();
   const [isShareCopied, setIsShareCopied] = useState(false);
   const { isConnected, isOwner } = useRoomStore();
 
@@ -26,7 +26,8 @@ export default function RoomHeader({ roomId }: RoomHeaderProps) {
   };
 
   const handleClose = () => {
-    router.push("/");
+    const socket = getSocket();
+    socket.emit(CLIENT_EVENTS.CLOSE_ROOM, { roomId });
   };
 
   return (

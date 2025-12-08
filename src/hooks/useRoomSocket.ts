@@ -2,9 +2,11 @@ import { CLIENT_EVENTS, SERVER_EVENTS, SOCKET_EVENTS } from "@/lib/events";
 import { getSocket } from "@/lib/socket";
 import type { RetroCard } from "@/lib/types";
 import { useRoomStore } from "@/store/useRoomStore";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export function useRoomSocket(roomId: string) {
+  const router = useRouter();
   const {
     setConnected,
     setOwner,
@@ -33,6 +35,10 @@ export function useRoomSocket(roomId: string) {
       setOwner(data.isOwner);
     };
 
+    const handleRoomClosed = () => {
+      router.push("/");
+    };
+
     const handleCardAdded = (card: RetroCard) => {
       addCard(card);
     };
@@ -49,9 +55,9 @@ export function useRoomSocket(roomId: string) {
       deleteCard(data.cardId);
     };
 
-    // Event listeners
     socketInstance.on(SOCKET_EVENTS.CONNECT, handleConnect);
     socketInstance.on(SERVER_EVENTS.ROOM_JOINED, handleRoomJoined);
+    socketInstance.on(SERVER_EVENTS.ROOM_CLOSED, handleRoomClosed);
     socketInstance.on(SERVER_EVENTS.CARD_ADDED, handleCardAdded);
     socketInstance.on(SERVER_EVENTS.CARD_UPDATED, handleCardUpdated);
     socketInstance.on(SERVER_EVENTS.CARD_DELETED, handleCardDeleted);
@@ -65,6 +71,7 @@ export function useRoomSocket(roomId: string) {
     return () => {
       socketInstance.off(SOCKET_EVENTS.CONNECT, handleConnect);
       socketInstance.off(SERVER_EVENTS.ROOM_JOINED, handleRoomJoined);
+      socketInstance.off(SERVER_EVENTS.ROOM_CLOSED, handleRoomClosed);
       socketInstance.off(SERVER_EVENTS.CARD_ADDED, handleCardAdded);
       socketInstance.off(SERVER_EVENTS.CARD_UPDATED, handleCardUpdated);
       socketInstance.off(SERVER_EVENTS.CARD_DELETED, handleCardDeleted);
@@ -78,5 +85,6 @@ export function useRoomSocket(roomId: string) {
     updateCard,
     deleteCard,
     setRoomId,
+    router,
   ]);
 }

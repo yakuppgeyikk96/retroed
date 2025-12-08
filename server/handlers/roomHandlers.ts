@@ -1,6 +1,7 @@
 import { SERVER_EVENTS } from "../../src/lib/events";
 import * as roomStore from "../store/roomStore";
 import type {
+  CloseRoomData,
   JoinRoomData,
   LeaveRoomData,
   SocketEventHandler,
@@ -49,4 +50,25 @@ export const handleLeaveRoom: SocketEventHandler<LeaveRoomData> = (
     socketId: socket.id,
     timestamp: new Date().toISOString(),
   });
+};
+
+export const handleCloseRoom: SocketEventHandler<CloseRoomData> = (
+  data,
+  { socket, io }
+) => {
+  if (!roomStore.isRoomOwner(data.roomId, socket.id)) {
+    console.log(
+      `Socket ${socket.id} tried to close room ${data.roomId} but is not owner`
+    );
+    return;
+  }
+
+  io.to(data.roomId).emit(SERVER_EVENTS.ROOM_CLOSED, {
+    roomId: data.roomId,
+    timestamp: new Date().toISOString(),
+  });
+
+  roomStore.removeRoomOwner(data.roomId);
+
+  console.log(`Room ${data.roomId} closed by owner ${socket.id}`);
 };

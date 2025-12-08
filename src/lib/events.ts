@@ -8,6 +8,7 @@ export const CLIENT_EVENTS = {
   ADD_CARD: "add-card",
   UPDATE_CARD: "update-card",
   DELETE_CARD: "delete-card",
+  CLOSE_ROOM: "close-room",
 } as const;
 
 export const SERVER_EVENTS = {
@@ -17,6 +18,7 @@ export const SERVER_EVENTS = {
   CARD_UPDATED: "card-updated",
   CARD_DELETED: "card-deleted",
   ROOM_JOINED: "room-joined",
+  ROOM_CLOSED: "room-closed",
 } as const;
 
 export const SOCKET_EVENTS = {
