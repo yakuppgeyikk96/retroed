@@ -69,3 +69,61 @@ export const deleteRoom = async (roomId: string): Promise<void> => {
   await redis.del(roomKey);
   console.log(`✅ Room ${roomId} deleted from Redis`);
 };
+
+/**
+ * Add new attendee to room
+ */
+export const addAttendee = async (
+  roomId: string,
+  socketId: string
+): Promise<void> => {
+  const redisClient = getRedisClient();
+  const roomKey = getRoomKey(roomId);
+
+  // Get existing attendees
+  const attendeesStr = await redisClient.hget(roomKey, "attendees");
+  const attendees: string[] = attendeesStr ? JSON.parse(attendeesStr) : [];
+
+  // If attendee doesn't exist, add them
+  if (!attendees.includes(socketId)) {
+    attendees.push(socketId);
+
+    const now = new Date().toISOString();
+
+    await redisClient.hset(roomKey, {
+      attendees: JSON.stringify(attendees),
+      updatedAt: now,
+    });
+
+    console.log(`✅ Attendee ${socketId} added to room ${roomId}`);
+  }
+};
+
+/**
+ * Remove attendee from room
+ */
+export const removeAttendee = async (
+  roomId: string,
+  socketId: string
+): Promise<void> => {
+  const redis = getRedisClient();
+  const roomKey = getRoomKey(roomId);
+
+  // Get existing attendees
+  const attendeesStr = await redis.hget(roomKey, "attendees");
+  const attendees: string[] = JSON.parse(attendeesStr || "[]");
+
+  // Remove attendee from list
+  const filteredAttendees = attendees.filter((id) => id !== socketId);
+
+  if (filteredAttendees.length !== attendees.length) {
+    const now = new Date().toISOString();
+
+    await redis.hset(roomKey, {
+      attendees: JSON.stringify(filteredAttendees),
+      updatedAt: now,
+    });
+
+    console.log(`✅ Attendee ${socketId} removed from room ${roomId}`);
+  }
+};
