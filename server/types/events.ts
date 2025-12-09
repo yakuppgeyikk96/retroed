@@ -1,3 +1,4 @@
+import { RetroColumn } from "@/lib/types";
 import type { Socket, Server as SocketIOServer } from "socket.io";
 
 export interface SocketData {
@@ -19,7 +20,7 @@ export interface CloseRoomData {
 
 export interface AddCardData {
   roomId: string;
-  column: string;
+  column: RetroColumn;
   content: string;
 }
 

@@ -1,4 +1,5 @@
 import { SERVER_EVENTS } from "../../src/lib/events";
+import { addCardToRoom } from "../lib/roomRepository";
 import type {
   AddCardData,
   DeleteCardData,
@@ -6,7 +7,7 @@ import type {
   UpdateCardData,
 } from "../types/events";
 
-export const handleAddCard: SocketEventHandler<AddCardData> = (
+export const handleAddCard: SocketEventHandler<AddCardData> = async (
   data,
   { io }
 ) => {
@@ -17,6 +18,15 @@ export const handleAddCard: SocketEventHandler<AddCardData> = (
     createdAt: new Date().toISOString(),
   };
 
+  // Save to Redis
+  try {
+    await addCardToRoom(data.roomId, cardData);
+  } catch (error) {
+    console.error(`Error adding card to Redis for room ${data.roomId}:`, error);
+    // Continue even if Redis fails (fallback)
+  }
+
+  // Emit to all clients in room
   io.to(data.roomId).emit(SERVER_EVENTS.CARD_ADDED, cardData);
   console.log(`Card added to room ${data.roomId}:`, cardData);
 };
