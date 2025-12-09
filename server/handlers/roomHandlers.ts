@@ -1,4 +1,5 @@
 import { SERVER_EVENTS } from "../../src/lib/events";
+import { createRoom, deleteRoom, roomExists } from "../lib/roomRepository";
 import * as roomStore from "../store/roomStore";
 import type {
   CloseRoomData,
@@ -7,7 +8,7 @@ import type {
   SocketEventHandler,
 } from "../types/events";
 
-export const handleJoinRoom: SocketEventHandler<JoinRoomData> = (
+export const handleJoinRoom: SocketEventHandler<JoinRoomData> = async (
   data,
   { socket }
 ) => {
@@ -15,8 +16,19 @@ export const handleJoinRoom: SocketEventHandler<JoinRoomData> = (
   console.log(`Socket ${socket.id} joined room: ${data.roomId}`);
 
   const isOwner = !roomStore.getRoomOwner(data.roomId);
+
   if (isOwner) {
     roomStore.setRoomOwner(data.roomId, socket.id);
+
+    try {
+      const isRoomExists = await roomExists(data.roomId);
+
+      if (!isRoomExists) {
+        await createRoom(data.roomId, socket.id);
+      }
+    } catch (error) {
+      console.error(`Error creating room ${data.roomId}:`, error);
+    }
   }
 
   const ownerId = roomStore.getRoomOwner(data.roomId)!;
@@ -52,7 +64,7 @@ export const handleLeaveRoom: SocketEventHandler<LeaveRoomData> = (
   });
 };
 
-export const handleCloseRoom: SocketEventHandler<CloseRoomData> = (
+export const handleCloseRoom: SocketEventHandler<CloseRoomData> = async (
   data,
   { socket, io }
 ) => {
@@ -69,6 +81,12 @@ export const handleCloseRoom: SocketEventHandler<CloseRoomData> = (
   });
 
   roomStore.removeRoomOwner(data.roomId);
+
+  try {
+    await deleteRoom(data.roomId);
+  } catch (error) {
+    console.error(`Failed to delete room from Redis: ${error}`);
+  }
 
   console.log(`Room ${data.roomId} closed by owner ${socket.id}`);
 };
