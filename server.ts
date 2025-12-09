@@ -3,6 +3,7 @@ import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { parse } from "url";
 import { registerHandlers } from "./server/handlers";
+import { getRedisClient } from "./server/lib/redis";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
@@ -12,6 +13,13 @@ const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
+  try {
+    getRedisClient();
+  } catch (error) {
+    console.error("Failed to connect to Redis:", error);
+    console.warn("⚠️ Continuing without Redis (some features may not work)");
+  }
+
   const httpServer = createServer(
     async (req: IncomingMessage, res: ServerResponse) => {
       try {

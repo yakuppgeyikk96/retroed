@@ -12,6 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "ioredis": "^5.8.2",
     "lucide-react": "^0.556.0",
     "next": "16.0.7",
     "react": "19.2.0",
@@ -31,5 +32,6 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@10.25.0+sha512.5e82639027af37cf832061bcc6d639c219634488e0f2baebe785028a793de7b525ffcd3f7ff574f5e9860654e098fe852ba8ac5dd5cefe1767d23a020a92f501"
 }
